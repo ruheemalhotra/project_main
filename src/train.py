@@ -2,12 +2,11 @@
 # 0. Setup (CI/CD friendly)
 # ======================================
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Reduce TensorFlow logs
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import pandas as pd
 import numpy as np
 import joblib
-import matplotlib.pyplot as plt
 
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
@@ -39,8 +38,6 @@ print("Original Shape:", df.shape)
 # ======================================
 # 2. Preprocessing
 # ======================================
-
-# Separate columns
 num_cols = df.select_dtypes(include=['int64', 'float64']).columns
 cat_cols = df.select_dtypes(include=['object']).columns
 
@@ -48,7 +45,7 @@ cat_cols = df.select_dtypes(include=['object']).columns
 df[num_cols] = df[num_cols].fillna(df[num_cols].mean())
 df[cat_cols] = df[cat_cols].fillna("Unknown")
 
-# One-hot encoding (keeps categorical info)
+# One-hot encoding
 df_encoded = pd.get_dummies(df, columns=cat_cols)
 
 # Normalize
@@ -85,9 +82,9 @@ model.summary()
 # ======================================
 # 4. Train Model
 # ======================================
-history = model.fit(
+model.fit(
     X_train, X_train,
-    epochs=10,          # keep small for CI/CD
+    epochs=5,
     batch_size=32,
     validation_data=(X_test, X_test),
     shuffle=True,
@@ -101,25 +98,28 @@ history = model.fit(
 reconstructions = model.predict(data_scaled)
 mse = np.mean(np.power(data_scaled - reconstructions, 2), axis=1)
 
+# Mean reconstruction error
+mean_error = np.mean(mse)
+print(f"\nMean Reconstruction Error: {mean_error:.6f}")
+
 
 # ======================================
-# 6. Threshold (robust)
+# 6. Threshold
 # ======================================
 threshold = np.percentile(mse, 95)
-print("Threshold:", threshold)
+print(f"Threshold: {threshold:.6f}")
 
 anomalies = mse > threshold
-print("Total anomalies detected:", np.sum(anomalies))
+print(f"Total anomalies detected: {np.sum(anomalies)}")
 
 
 # ======================================
 # 7. Save Results
 # ======================================
 df_results = df.copy()
-df_results['reconstruction_error'] = mse
+df_results['reconstruction_error'] = mse.round(6)
 df_results['anomaly'] = anomalies
 
-# Save results
 df_results.to_csv("outputs/anomaly_results.csv", index=False)
 
 # Top anomalies
@@ -131,39 +131,21 @@ top_anomalies.to_csv("outputs/top_anomalies.csv", index=False)
 
 
 # ======================================
-# 8. Visualizations (Improved)
+# 8. Save Reconstructed Data (Separate)
 # ======================================
+reconstructed_df = pd.DataFrame(
+    reconstructions, columns=df_encoded.columns
+)
 
-# 1. Error Distribution WITH Threshold
-plt.figure()
-plt.hist(mse, bins=50)
-plt.axvline(threshold, color='r', linestyle='--', label='Threshold')
-plt.title("Reconstruction Error Distribution")
-plt.xlabel("Error")
-plt.ylabel("Frequency")
-plt.legend()
-plt.savefig("outputs/error_distribution.png")
-plt.close()
+reconstructed_df.to_csv("outputs/reconstructed_data.csv", index=False)
 
-
-# 2. Scatter Plot (Best for anomalies)
-plt.figure()
-plt.scatter(range(len(mse)), mse, c=anomalies)
-plt.axhline(y=threshold, color='r', linestyle='--')
-plt.title("Anomaly Detection")
-plt.xlabel("Data Index")
-plt.ylabel("Reconstruction Error")
-plt.savefig("outputs/anomaly_scatter.png")
-plt.close()
-
-print("Improved visualizations saved in outputs/")
-print("Visualizations saved in outputs/")
+print("Reconstructed data saved!")
 
 
 # ======================================
-# 9. Save Model Artifact
+# 9. Save Model Artifacts
 # ======================================
-model.save("model/autoencoder.h5")
+model.save("model/autoencoder.keras")
 joblib.dump(scaler, "model/scaler.pkl")
 joblib.dump(threshold, "model/threshold.pkl")
 
