@@ -1,6 +1,5 @@
-# ======================================
+
 # 0. Setup (CI/CD friendly)
-# ======================================
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -22,10 +21,7 @@ tf.random.set_seed(42)
 os.makedirs("model", exist_ok=True)
 os.makedirs("outputs", exist_ok=True)
 
-
-# ======================================
 # 1. Load Dataset
-# ======================================
 data_path = "data/blood_cell_anomaly_detection.csv"
 
 if not os.path.exists(data_path):
@@ -34,10 +30,8 @@ if not os.path.exists(data_path):
 df = pd.read_csv(data_path)
 print("Original Shape:", df.shape)
 
-
-# ======================================
 # 2. Preprocessing
-# ======================================
+
 num_cols = df.select_dtypes(include=['int64', 'float64']).columns
 cat_cols = df.select_dtypes(include=['object']).columns
 
@@ -59,10 +53,7 @@ X_train, X_test = train_test_split(
     data_scaled, test_size=0.2, random_state=42
 )
 
-
-# ======================================
 # 3. Build Autoencoder
-# ======================================
 input_dim = X_train.shape[1]
 
 model = models.Sequential([
@@ -78,10 +69,8 @@ model = models.Sequential([
 model.compile(optimizer='adam', loss='mse')
 model.summary()
 
-
-# ======================================
 # 4. Train Model
-# ======================================
+
 model.fit(
     X_train, X_train,
     epochs=5,
@@ -91,10 +80,8 @@ model.fit(
     verbose=1
 )
 
-
-# ======================================
 # 5. Reconstruction Error
-# ======================================
+
 reconstructions = model.predict(data_scaled)
 mse = np.mean(np.power(data_scaled - reconstructions, 2), axis=1)
 
@@ -102,20 +89,15 @@ mse = np.mean(np.power(data_scaled - reconstructions, 2), axis=1)
 mean_error = np.mean(mse)
 print(f"\nMean Reconstruction Error: {mean_error:.6f}")
 
-
-# ======================================
 # 6. Threshold
-# ======================================
+
 threshold = np.percentile(mse, 95)
 print(f"Threshold: {threshold:.6f}")
 
 anomalies = mse > threshold
 print(f"Total anomalies detected: {np.sum(anomalies)}")
 
-
-# ======================================
 # 7. Save Results
-# ======================================
 df_results = df.copy()
 df_results['reconstruction_error'] = mse.round(6)
 df_results['anomaly'] = anomalies
@@ -129,10 +111,8 @@ top_anomalies = df_results.sort_values(
 
 top_anomalies.to_csv("outputs/top_anomalies.csv", index=False)
 
-
-# ======================================
 # 8. Save Reconstructed Data (Separate)
-# ======================================
+
 reconstructed_df = pd.DataFrame(
     reconstructions, columns=df_encoded.columns
 )
@@ -142,9 +122,7 @@ reconstructed_df.to_csv("outputs/reconstructed_data.csv", index=False)
 print("Reconstructed data saved!")
 
 
-# ======================================
 # 9. Save Model Artifacts
-# ======================================
 model.save("model/autoencoder.keras")
 joblib.dump(scaler, "model/scaler.pkl")
 joblib.dump(threshold, "model/threshold.pkl")
