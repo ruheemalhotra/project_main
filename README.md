@@ -48,8 +48,6 @@ project_main/
 
 ### 4.1 Data Preprocessing
 
-* Missing values in numerical columns are filled with mean
-* Missing values in categorical columns are filled with "Unknown"
 * Categorical features are converted using one-hot encoding
 * Data is normalized using MinMaxScaler
 
@@ -123,29 +121,9 @@ python src/train.py
 
 Docker is included for environment consistency and future deployment.
 
-### 9.1 Build Image
-
-```
-docker build -t anomaly-detector .
-```
-
-### 9.2 Run Container
-
-```
-docker run anomaly-detector
-```
 
 ---
 
-## 10. Future Scope
-
-* Integration with a web interface for visualization
-* Real-time anomaly detection using API
-* Feature-level explanation of anomalies
-* Model optimization and tuning
-
----
-
-## 11. Conclusion
+## 10. Conclusion
 
 The project demonstrates how autoencoders can be used for anomaly detection by learning normal data patterns and identifying deviations through reconstruction error.
