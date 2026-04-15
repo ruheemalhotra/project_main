@@ -156,7 +156,7 @@ print("Visualizations saved in outputs/")
 
 
 # ======================================
-# 9. Save Model Artifacts
+# 9. Save Model Artifact
 # ======================================
 model.save("model/autoencoder.h5")
 joblib.dump(scaler, "model/scaler.pkl")
