@@ -122,7 +122,35 @@ reconstructed_df.to_csv("outputs/reconstructed_data.csv", index=False)
 print("Reconstructed data saved!")
 
 
-# 9. Save Model Artifacts
+# 9. Visualizations
+
+import matplotlib.pyplot as plt
+
+# 1. Error Distribution with Threshold
+plt.figure()
+plt.hist(mse, bins=50)
+plt.axvline(threshold, linestyle='--', label='Threshold')
+plt.title("Reconstruction Error Distribution")
+plt.xlabel("Error")
+plt.ylabel("Frequency")
+plt.legend()
+plt.savefig("outputs/error_distribution.png")
+plt.close()
+
+
+# 2. Scatter Plot for Anomalies
+plt.figure()
+plt.scatter(range(len(mse)), mse, c=anomalies)
+plt.axhline(y=threshold, linestyle='--')
+plt.title("Anomaly Detection")
+plt.xlabel("Data Index")
+plt.ylabel("Reconstruction Error")
+plt.savefig("outputs/anomaly_scatter.png")
+plt.close()
+
+print("Visualizations saved in outputs/")
+
+# 10. Save Model Artifacts
 model.save("model/autoencoder.keras")
 joblib.dump(scaler, "model/scaler.pkl")
 joblib.dump(threshold, "model/threshold.pkl")
