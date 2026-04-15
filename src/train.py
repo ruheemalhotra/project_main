@@ -131,27 +131,32 @@ top_anomalies.to_csv("outputs/top_anomalies.csv", index=False)
 
 
 # ======================================
-# 8. Visualizations (saved to outputs/)
+# 8. Visualizations (Improved)
 # ======================================
 
-# 1. Error distribution
+# 1. Error Distribution WITH Threshold
 plt.figure()
 plt.hist(mse, bins=50)
+plt.axvline(threshold, color='r', linestyle='--', label='Threshold')
 plt.title("Reconstruction Error Distribution")
 plt.xlabel("Error")
 plt.ylabel("Frequency")
+plt.legend()
 plt.savefig("outputs/error_distribution.png")
 plt.close()
 
-# 2. Threshold line plot
+
+# 2. Scatter Plot (Best for anomalies)
 plt.figure()
-plt.plot(mse, label="Reconstruction Error")
-plt.axhline(y=threshold, color='r', linestyle='--', label='Threshold')
-plt.legend()
-plt.title("Error vs Threshold")
-plt.savefig("outputs/error_threshold_plot.png")
+plt.scatter(range(len(mse)), mse, c=anomalies)
+plt.axhline(y=threshold, color='r', linestyle='--')
+plt.title("Anomaly Detection")
+plt.xlabel("Data Index")
+plt.ylabel("Reconstruction Error")
+plt.savefig("outputs/anomaly_scatter.png")
 plt.close()
 
+print("Improved visualizations saved in outputs/")
 print("Visualizations saved in outputs/")
 
 
