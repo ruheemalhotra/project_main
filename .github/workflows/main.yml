@@ -9,18 +9,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # 1. Checkout repo
     - name: Checkout code
       uses: actions/checkout@v4
 
+    # 2. Setup Python
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.10'
 
+    # 3. Install dependencies
     - name: Install dependencies
       run: |
+        pip install --upgrade pip
         pip install -r requirements.txt
 
+    # 4. Run training script
     - name: Run training script
       run: |
         python src/train.py
+
+    # 5. Upload outputs (IMPORTANT)
+    - name: Upload outputs
+      uses: actions/upload-artifact@v4
+      with:
+        name: anomaly-results
+        path: |
+          outputs/
+          model/
